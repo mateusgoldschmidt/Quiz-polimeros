@@ -4,364 +4,679 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz: Polímeros e Química Verde</title>
-    <!-- Tailwind CSS para estilização rápida e bonita -->
+    
+    <!-- Tipografia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Teachers:opsz,wght@9..14,400..700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome (Ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Canvas Confetti (Efeito de vitória) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
-        /* Estilos personalizados com animações */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .hidden { display: none !important; }
-        .question-card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-top: 6px solid #16a34a; margin-bottom: 1rem; transition: all 0.3s ease; }
-        .radio-label { display: flex; align-items: center; padding: 1rem; border-radius: 0.5rem; transition: all 0.2s ease; cursor: pointer; border: 2px solid transparent; margin-bottom: 0.5rem; background-color: #f8fafc; font-size: 1.05rem; }
-        .radio-label:hover { background: #dcfce7; border-color: #86efac; transform: translateX(8px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        input[type="radio"] { margin-right: 1rem; transform: scale(1.4); accent-color: #16a34a; }
-        textarea { width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; margin-top: 1rem; resize: vertical; min-height: 140px; transition: all 0.3s; font-size: 1rem; }
-        textarea:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2); }
-        
-        /* Animações Mágicas */
-        @keyframes slideFadeUp {
-            0% { opacity: 0; transform: translateY(40px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+        :root {
+            --quiz-primary: #0ea5e9;
+            --quiz-primary-strong: #0284c7;
+            --quiz-accent: #10b981;
+            --quiz-accent-light: #34d399;
+            --quiz-error: #fb7185;
         }
-        .animate-step { animation: slideFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        body {
+            font-family: 'Teachers', system-ui, sans-serif;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
         
-        /* Background animado */
-        .bg-quiz { background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 50%, #f0fdf4 100%); background-size: 400% 400%; animation: gradientBG 15s ease infinite; min-height: 100vh; }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        h1, h2, h3 { font-family: 'Cabin Sketch', cursive; }
+        .font-gamified { font-family: 'Luckiest Guy', cursive; letter-spacing: 0.05em; }
+        .hidden { display: none !important; }
+
+        /* Fundo Animado (Glassmorphism e Bolhas) */
+        .bg-quiz {
+            background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, #f0f9ff 35%, #ecfdf5 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        .bg-quiz::before {
+            content: "";
+            position: fixed;
+            inset: -40%;
+            background: conic-gradient(from 120deg at 10% 10%, rgba(56,189,248,0.2), transparent 30%, rgba(16,185,129,0.15), transparent 60%, rgba(56,189,248,0.2));
+            opacity: 0.7;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            animation: bgSpin 40s linear infinite;
+            z-index: 0;
+        }
+        @keyframes bgSpin { 100% { transform: rotate(360deg); } }
+
+        .bubbles {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .bubbles span {
+            position: absolute;
+            bottom: -15vh;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(56,189,248,0.4));
+            box-shadow: 0 0 20px rgba(59,130,246,0.4), inset 0 0 8px rgba(255,255,255,0.8);
+            animation: bubbleRise linear infinite;
+            animation-duration: calc(120s / var(--i));
+            left: calc(100% * var(--i) / 24);
+            opacity: 0.4;
+        }
+        @keyframes bubbleRise {
+            0% { transform: translate3d(0, 110vh, 0) scale(0.6); }
+            100% { transform: translate3d(20px, -20vh, 0) scale(1.5); opacity: 0; }
+        }
+
+        /* Cartões estilo Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px -20px rgba(15, 23, 42, 0.15);
+            border-radius: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .question-card {
+            padding: 2rem;
+            border-left: 6px solid var(--quiz-accent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Opções (Radio Buttons) */
+        .radio-label {
+            display: flex;
+            align-items: center;
+            padding: 1.1rem 1.25rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1.05rem;
+            transition: all 0.2s ease;
+        }
+        .radio-label:hover {
+            background: #f0fdf4;
+            border-color: #86efac;
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        }
+        .radio-label.selected {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            border-color: var(--quiz-accent);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+            font-weight: 600;
+        }
+        input[type="radio"] {
+            margin-right: 1.25rem;
+            transform: scale(1.4);
+            accent-color: var(--quiz-accent);
+        }
+
+        /* Textarea */
+        textarea {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            min-height: 140px;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--quiz-primary);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+            background: #fff;
+        }
+
+        /* Barra de Progresso com Candy Stripes */
+        .progress-track {
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            height: 12px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #10b981);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .progress-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.3) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.3) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+            animation: stripeMove 2s linear infinite;
+        }
+        @keyframes stripeMove { 100% { background-position: 40px 0; } }
+
+        /* Animações e Feedback */
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-step { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .shake { animation: shake 0.3s ease-out; }
+
+        /* Mascote Flutuante */
+        #quiz-mascot {
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff, #e0f2fe);
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            border: 3px solid #bae6fd;
+            transition: transform 0.3s ease;
+        }
+        #quiz-mascot:hover { transform: scale(1.1) rotate(-10deg); }
+        .mascot-bounce { animation: mBounce 0.6s ease; }
+        @keyframes mBounce { 50% { transform: translateY(-15px) scale(1.1); } }
+
+        /* Toast */
+        #toast { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="text-gray-800 bg-quiz">
+<body class="bg-quiz">
 
-    <div class="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 pt-8">
-        
+    <!-- Bolhas animadas de fundo -->
+    <div class="bubbles" aria-hidden="true">
+        <span style="--i:4;"></span><span style="--i:8;"></span>
+        <span style="--i:12;"></span><span style="--i:16;"></span>
+        <span style="--i:20;"></span><span style="--i:24;"></span>
+        <span style="--i:28;"></span><span style="--i:32;"></span>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-6 inset-x-0 flex justify-center z-50 opacity-0 pointer-events-none -translate-y-4">
+        <div class="bg-rose-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 font-semibold text-sm sm:text-base">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Mensagem</span>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 pt-8 relative z-10">
+
         <!-- CABEÇALHO -->
-        <header class="text-center mb-10 animate-step" style="animation-delay: 0.1s;">
-            <div class="inline-block bg-white p-4 rounded-full shadow-lg mb-4 text-5xl transform hover:scale-110 transition-transform duration-300">🧪🌱</div>
-            <h1 class="text-4xl font-extrabold text-green-800 mb-2 tracking-tight drop-shadow-sm">Quiz: Polímeros e Química Verde</h1>
-            <p class="text-lg text-green-700 font-semibold bg-white/50 inline-block px-4 py-1 rounded-full">Produzido por Alfredo Neri José Soares Neto</p>
+        <header class="text-center mb-10 animate-step">
+            <div class="inline-block bg-white p-5 rounded-full shadow-lg mb-4 text-5xl border border-sky-100">
+                <i class="fas fa-flask text-sky-500"></i>
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-bold mb-3 text-sky-800">
+                Química Verde & Polímeros
+            </h1>
+            <p class="text-lg text-sky-900 font-semibold bg-white/70 inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white shadow-sm">
+                <i class="fas fa-chalkboard-teacher text-xl text-sky-600"></i>
+                <span>Prof. Alfredo Neri</span>
+            </p>
         </header>
 
         <!-- TELA 1: IDENTIFICAÇÃO -->
-        <div id="intro-screen" class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl text-center border border-white/50 animate-step" style="animation-delay: 0.2s;">
-            <h2 class="text-3xl font-bold mb-4 text-gray-800">Bem-vindo(a)! 👋</h2>
-            <p class="mb-8 text-gray-600 text-lg">Este quiz possui 12 questões. O seu tempo de resposta será cronometrado a partir do momento em que você clicar em "Iniciar".</p>
-            
-            <div class="max-w-md mx-auto text-left bg-gray-50 p-6 rounded-xl border border-gray-100">
-                <label for="student-name" class="block font-bold text-gray-700 mb-2">Nome Completo:</label>
-                <input type="text" id="student-name" class="w-full p-4 border-2 border-gray-300 rounded-xl mb-6 focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all text-lg" placeholder="Digite seu nome para começar..." required>
-                
-                <button onclick="startQuiz()" class="w-full bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl text-xl flex items-center justify-center gap-3 shadow-lg">
-                    <span>🚀 Iniciar o Quiz!</span>
+        <section id="intro-screen" class="glass-card p-8 sm:p-10 text-center animate-step" style="animation-delay: 0.1s;">
+            <h2 class="text-3xl font-bold mb-4 text-sky-900">Bem-vindo(a) à Jornada! 👋</h2>
+            <p class="mb-8 text-slate-700 text-lg max-w-xl mx-auto">
+                Prepare-se para <strong class="text-emerald-600">12 questões</strong> sobre o fascinante mundo dos polímeros. Seu tempo será cronometrado. Divirta-se! 🚀
+            </p>
+
+            <div class="max-w-md mx-auto text-left bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <label for="student-name" class="block font-bold text-slate-700 mb-2">
+                    <i class="fas fa-user-graduate text-emerald-500 mr-2"></i>Como devemos te chamar?
+                </label>
+                <input type="text" id="student-name" class="w-full p-4 border-2 border-slate-300 rounded-xl mb-6 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 transition-all text-lg bg-white" placeholder="Digite seu nome completo..." required>
+
+                <button onclick="startQuiz()" class="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg transform hover:-translate-y-1 text-xl flex items-center justify-center gap-3">
+                    <span>Começar o Quiz</span> <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
-            <p id="name-error" class="text-red-500 font-bold mt-4 hidden animate-bounce">⚠️ Por favor, insira seu nome para continuar.</p>
-        </div>
+            <p id="name-error" class="text-rose-500 font-bold mt-4 hidden">
+                <i class="fas fa-exclamation-circle mr-1"></i> Por favor, insira seu nome para continuar.
+            </p>
+        </section>
 
         <!-- TELA 2: FORMULÁRIO DO QUIZ -->
         <form id="quiz-form" class="hidden relative" onsubmit="submitQuiz(event)">
+
+            <!-- Status Bar Sticky -->
+            <div class="mb-8 glass-card p-5 sticky top-4 z-20 border-b-4 border-b-emerald-400">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest block mb-1">Progresso</span>
+                        <h3 id="progress-text" class="text-xl font-bold text-slate-800">Questão 1 de 12</h3>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                        <span id="progress-percent" class="inline-block bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold py-1 px-3 rounded-full shadow-sm">0%</span>
+                        <span class="inline-flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                            <i class="far fa-clock text-sky-600 text-xs"></i>
+                            <span id="live-timer" class="font-mono font-bold text-sm text-slate-700">00:00</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="progress-track">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- QUESTÕES -->
             
-            <!-- Barra de Progresso -->
-            <div class="mb-8 bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-md border border-white/50 sticky top-4 z-10">
-                <div class="flex justify-between text-sm font-extrabold text-green-700 mb-2 uppercase tracking-wide">
-                    <span id="progress-text">Questão 1 de 12</span>
-                    <span id="progress-percent" class="bg-green-100 text-green-800 py-1 px-3 rounded-full">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-3.5 shadow-inner overflow-hidden">
-                    <div id="progress-bar" class="bg-gradient-to-r from-green-400 via-green-500 to-emerald-600 h-3.5 rounded-full transition-all duration-700 ease-out relative" style="width: 0%">
-                        <div class="absolute top-0 left-0 w-full h-full bg-white/20 animate-pulse"></div>
+            <!-- Q1 -->
+            <section id="q-step-0" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-leaf"></i> Origem
+                        </span>
                     </div>
-                </div>
-            </div>
-
-            <!-- Questões (Passo a Passo) -->
-            
-            <!-- Questão 1 -->
-            <div id="q-step-0" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
-                    </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">1. Em relação à origem dos polímeros, qual das alternativas apresenta APENAS exemplos de polímeros naturais (também chamados de biopolímeros)?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">1. Em relação à origem dos polímeros, qual das alternativas apresenta APENAS exemplos de polímeros naturais (biopolímeros)?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q1" value="A"> a) Polietileno, PVC e Celulose</label>
-                        <label class="radio-label"><input type="radio" name="q1" value="B"> b) Amido, DNA e Látex natural</label>
-                        <label class="radio-label"><input type="radio" name="q1" value="C"> c) Borracha sintética, PET e Proteínas</label>
-                        <label class="radio-label"><input type="radio" name="q1" value="D"> d) Baquelite, Polipropileno e Amido</label>
+                        <label class="radio-label"><input type="radio" name="q1" value="A"> <span>a) Polietileno, PVC e Celulose</span></label>
+                        <label class="radio-label"><input type="radio" name="q1" value="B"> <span>b) Amido, DNA e Látex natural</span></label>
+                        <label class="radio-label"><input type="radio" name="q1" value="C"> <span>c) Borracha sintética, PET e Proteínas</span></label>
+                        <label class="radio-label"><input type="radio" name="q1" value="D"> <span>d) Baquelite, Polipropileno e Amido</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 2 -->
-            <div id="q-step-1" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q2 -->
+            <section id="q-step-1" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-fire-alt"></i> Propriedades Térmicas
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">2. Ao fabricar o cabo de uma panela, a indústria precisa de um material que possua ligações cruzadas e não derreta com o calor do fogão. Que tipo de polímero apresenta esse comportamento térmico?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">2. Ao fabricar o cabo de uma panela, a indústria precisa de um material que possua ligações cruzadas e não derreta com o calor do fogão. Que tipo de polímero apresenta esse comportamento?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q2" value="A"> a) Termoplástico</label>
-                        <label class="radio-label"><input type="radio" name="q2" value="B"> b) Elastômero linear</label>
-                        <label class="radio-label"><input type="radio" name="q2" value="C"> c) Termofixo</label>
-                        <label class="radio-label"><input type="radio" name="q2" value="D"> d) Copolímero de adição</label>
+                        <label class="radio-label"><input type="radio" name="q2" value="A"> <span>a) Termoplástico</span></label>
+                        <label class="radio-label"><input type="radio" name="q2" value="B"> <span>b) Elastômero linear</span></label>
+                        <label class="radio-label"><input type="radio" name="q2" value="C"> <span>c) Termofixo</span></label>
+                        <label class="radio-label"><input type="radio" name="q2" value="D"> <span>d) Copolímero de adição</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 3 -->
-            <div id="q-step-2" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q3 -->
+            <section id="q-step-2" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-vial"></i> Reações
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">3. Na formação de polímeros como o PET, ocorre a união de monômeros acompanhada da eliminação de moléculas pequenas, como a água. Como é classificado esse processo de formação?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">3. Na formação de polímeros como o PET, ocorre a união de monômeros acompanhada da eliminação de moléculas pequenas, como a água. Como é classificado esse processo?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q3" value="A"> a) Polimerização de Adição</label>
-                        <label class="radio-label"><input type="radio" name="q3" value="B"> b) Polimerização de Degradação</label>
-                        <label class="radio-label"><input type="radio" name="q3" value="C"> c) Polimerização de Condensação</label>
-                        <label class="radio-label"><input type="radio" name="q3" value="D"> d) Formação de Homopolímero simples</label>
+                        <label class="radio-label"><input type="radio" name="q3" value="A"> <span>a) Polimerização de Adição</span></label>
+                        <label class="radio-label"><input type="radio" name="q3" value="B"> <span>b) Polimerização de Degradação</span></label>
+                        <label class="radio-label"><input type="radio" name="q3" value="C"> <span>c) Polimerização de Condensação</span></label>
+                        <label class="radio-label"><input type="radio" name="q3" value="D"> <span>d) Formação de Homopolímero simples</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 4 -->
-            <div id="q-step-3" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q4 -->
+            <section id="q-step-3" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-dna"></i> Estrutura
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">4. A disposição e a variedade das unidades menores (monômeros) definem a estrutura da macromolécula. Um polímero formado por dois ou mais tipos de monômeros diferentes em sua cadeia é chamado de:</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">4. A disposição dos monômeros define a estrutura da macromolécula. Um polímero formado por dois ou mais tipos de monômeros diferentes em sua cadeia é chamado de:</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q4" value="A"> a) Homopolímero</label>
-                        <label class="radio-label"><input type="radio" name="q4" value="B"> b) Monômero insaturado</label>
-                        <label class="radio-label"><input type="radio" name="q4" value="C"> c) Termoplástico</label>
-                        <label class="radio-label"><input type="radio" name="q4" value="D"> d) Copolímero</label>
+                        <label class="radio-label"><input type="radio" name="q4" value="A"> <span>a) Homopolímero</span></label>
+                        <label class="radio-label"><input type="radio" name="q4" value="B"> <span>b) Monômero insaturado</span></label>
+                        <label class="radio-label"><input type="radio" name="q4" value="C"> <span>c) Termoplástico</span></label>
+                        <label class="radio-label"><input type="radio" name="q4" value="D"> <span>d) Copolímero</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 5 -->
-            <div id="q-step-4" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q5 -->
+            <section id="q-step-4" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-recycle"></i> Química Verde
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">5. A Química Verde possui 12 princípios focados na sustentabilidade. Qual das alternativas abaixo NÃO representa um desses princípios?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">5. A Química Verde possui 12 princípios focados na sustentabilidade. Qual das alternativas abaixo NÃO representa um desses princípios?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q5" value="A"> a) Prevenção de resíduos</label>
-                        <label class="radio-label"><input type="radio" name="q5" value="B"> b) Uso de matérias-primas renováveis</label>
-                        <label class="radio-label"><input type="radio" name="q5" value="C"> c) Aumento de etapas desnecessárias para gerar derivados</label>
-                        <label class="radio-label"><input type="radio" name="q5" value="D"> d) Eficiência energética</label>
+                        <label class="radio-label"><input type="radio" name="q5" value="A"> <span>a) Prevenção de resíduos</span></label>
+                        <label class="radio-label"><input type="radio" name="q5" value="B"> <span>b) Uso de matérias-primas renováveis</span></label>
+                        <label class="radio-label"><input type="radio" name="q5" value="C"> <span>c) Aumento de etapas desnecessárias para gerar derivados</span></label>
+                        <label class="radio-label"><input type="radio" name="q5" value="D"> <span>d) Eficiência energética</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 6 -->
-            <div id="q-step-5" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q6 -->
+            <section id="q-step-5" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-seedling"></i> Biodegradação
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">6. É comum confundir biopolímeros com polímeros biodegradáveis. Qual é a definição correta e o resultado da degradação de um POLÍMERO DEGRADÁVEL?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">6. É comum confundir biopolímeros com polímeros biodegradáveis. Qual é a definição correta e o resultado da degradação de um POLÍMERO DEGRADÁVEL?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q6" value="A"> a) São plásticos de petróleo que se dissolvem na água instantaneamente.</label>
-                        <label class="radio-label"><input type="radio" name="q6" value="B"> b) Se decompõem naturalmente pela ação de microrganismos, virando CO2, água e biomassa.</label>
-                        <label class="radio-label"><input type="radio" name="q6" value="C"> c) São materiais que amolecem com o calor e podem ser reciclados para sempre.</label>
-                        <label class="radio-label"><input type="radio" name="q6" value="D"> d) São macromoléculas formadas sem a eliminação de subprodutos.</label>
+                        <label class="radio-label"><input type="radio" name="q6" value="A"> <span>a) São plásticos de petróleo que dissolvem na água instantaneamente.</span></label>
+                        <label class="radio-label"><input type="radio" name="q6" value="B"> <span>b) Se decompõem naturalmente pela ação de microrganismos, virando CO2, água e biomassa.</span></label>
+                        <label class="radio-label"><input type="radio" name="q6" value="C"> <span>c) São materiais que amolecem com o calor e podem ser reciclados para sempre.</span></label>
+                        <label class="radio-label"><input type="radio" name="q6" value="D"> <span>d) São macromoléculas formadas sem a eliminação de subprodutos.</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 7 -->
-            <div id="q-step-6" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Múltipla Escolha</span>
+            <!-- Q7 -->
+            <section id="q-step-6" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-link"></i> Ligações
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">7. Os polímeros de adição (como embalagens e tubos), são formados pela quebra de qual tipo de ligação química presente nos monômeros originais?</p>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">7. Os polímeros de adição (como embalagens e tubos), são formados pela quebra de qual tipo de ligação química presente nos monômeros originais?</p>
                     <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q7" value="A"> a) Ligação iônica simples</label>
-                        <label class="radio-label"><input type="radio" name="q7" value="B"> b) Ligação dupla (C=C)</label>
-                        <label class="radio-label"><input type="radio" name="q7" value="C"> c) Ligação de hidrogênio</label>
-                        <label class="radio-label"><input type="radio" name="q7" value="D"> d) Ligação tripla de nitrogênio</label>
+                        <label class="radio-label"><input type="radio" name="q7" value="A"> <span>a) Ligação iônica simples</span></label>
+                        <label class="radio-label"><input type="radio" name="q7" value="B"> <span>b) Ligação dupla (C=C)</span></label>
+                        <label class="radio-label"><input type="radio" name="q7" value="C"> <span>c) Ligação de hidrogênio</span></label>
+                        <label class="radio-label"><input type="radio" name="q7" value="D"> <span>d) Ligação tripla de nitrogênio</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 8 (V/F) -->
-            <div id="q-step-7" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Verdadeiro ou Falso</span>
+            <!-- Q8 (V/F) -->
+            <section id="q-step-7" class="question-step hidden">
+                <article class="glass-card question-card">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-check-double"></i> Verdadeiro ou Falso
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-6 text-gray-800 leading-snug">8. Verdadeiro ou Falso: Todo plástico é considerado um polímero e, da mesma forma, todo polímero encontrado na natureza ou fabricado na indústria é obrigatoriamente classificado como um plástico.</p>
-                    <div class="space-y-3">
-                        <label class="radio-label"><input type="radio" name="q8" value="Verdadeiro"> Verdadeiro</label>
-                        <label class="radio-label"><input type="radio" name="q8" value="Falso"> Falso</label>
+                    <p class="font-bold text-2xl mb-6 text-slate-800">8. Verdadeiro ou Falso: Todo plástico é considerado um polímero e, da mesma forma, todo polímero encontrado na natureza ou fabricado na indústria é obrigatoriamente classificado como um plástico.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="radio-label justify-center"><input type="radio" name="q8" value="Verdadeiro"> <span class="font-bold">Verdadeiro</span></label>
+                        <label class="radio-label justify-center"><input type="radio" name="q8" value="Falso"> <span class="font-bold">Falso</span></label>
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
 
-            <!-- Questão 9 (Descritiva) -->
-            <div id="q-step-8" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Questão Descritiva</span>
+            <!-- Q9 (Descritiva) -->
+            <section id="q-step-8" class="question-step hidden">
+                <article class="glass-card question-card" style="border-left-color: #f59e0b;">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-pen-fancy"></i> Questão Descritiva
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-4 text-gray-800 leading-snug">9. Segundo os conceitos discutidos em aula, por que a alta durabilidade dos polímeros tradicionais (plásticos comuns) deixou de ser apenas uma vantagem tecnológica e se transformou em um grave problema ambiental na atualidade?</p>
-                    <textarea name="q9" placeholder="Escreva sua resposta com calma e detalhes..." required></textarea>
-                </div>
-            </div>
+                    <p class="font-bold text-2xl mb-4 text-slate-800">9. Segundo os conceitos discutidos em aula, por que a alta durabilidade dos polímeros tradicionais (plásticos comuns) deixou de ser apenas uma vantagem tecnológica e se transformou em um grave problema ambiental na atualidade?</p>
+                    <textarea name="q9" placeholder="Escreva sua resposta detalhadamente aqui..."></textarea>
+                </article>
+            </section>
 
-            <!-- Questão 10 (Descritiva) -->
-            <div id="q-step-9" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Questão Descritiva</span>
+            <!-- Q10 (Descritiva) -->
+            <section id="q-step-9" class="question-step hidden">
+                <article class="glass-card question-card" style="border-left-color: #f59e0b;">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-pen-fancy"></i> Questão Descritiva
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-4 text-gray-800 leading-snug">10. Explique, com suas próprias palavras, qual é o objetivo central da "Química Verde" no desenvolvimento de novos materiais e plásticos.</p>
-                    <textarea name="q10" placeholder="Escreva sua resposta com calma e detalhes..." required></textarea>
-                </div>
-            </div>
+                    <p class="font-bold text-2xl mb-4 text-slate-800">10. Explique, com suas próprias palavras, qual é o objetivo central da "Química Verde" no desenvolvimento de novos materiais e plásticos.</p>
+                    <textarea name="q10" placeholder="Escreva sua resposta detalhadamente aqui..."></textarea>
+                </article>
+            </section>
 
-            <!-- Questão 11 (Descritiva) -->
-            <div id="q-step-10" class="question-step hidden">
-                <div class="question-card">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Questão Descritiva</span>
+            <!-- Q11 (Descritiva) -->
+            <section id="q-step-10" class="question-step hidden">
+                <article class="glass-card question-card" style="border-left-color: #f59e0b;">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-pen-fancy"></i> Questão Descritiva
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-4 text-gray-800 leading-snug">11. Quando um polímero degradável sofre a ação de microrganismos em condições adequadas no meio ambiente, em quais três principais componentes ele se transforma ao final do processo?</p>
-                    <textarea name="q11" placeholder="Escreva sua resposta com calma e detalhes..." required></textarea>
-                </div>
-            </div>
+                    <p class="font-bold text-2xl mb-4 text-slate-800">11. Quando um polímero degradável sofre a ação de microrganismos em condições adequadas no meio ambiente, em quais três principais componentes ele se transforma ao final do processo?</p>
+                    <textarea name="q11" placeholder="Escreva sua resposta detalhadamente aqui..."></textarea>
+                </article>
+            </section>
 
-            <!-- Questão 12 (Descritiva) -->
-            <div id="q-step-11" class="question-step hidden">
-                <div class="question-card border-t-6 border-teal-500">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Última Questão! 🎉</span>
+            <!-- Q12 (Descritiva Final) -->
+            <section id="q-step-11" class="question-step hidden">
+                <article class="glass-card question-card" style="border-left-color: #3b82f6;">
+                    <div class="mb-4">
+                        <span class="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                            <i class="fas fa-star"></i> Última Questão!
+                        </span>
                     </div>
-                    <p class="font-extrabold text-2xl mb-4 text-gray-800 leading-snug">12. Diferencie brevemente, com base em suas origens, um polímero natural (biopolímero) de um polímero sintético, e cite um exemplo prático de cada tipo abordado em aula.</p>
-                    <textarea name="q12" placeholder="Escreva sua resposta com calma e detalhes..." required></textarea>
-                </div>
-            </div>
+                    <p class="font-bold text-2xl mb-4 text-slate-800">12. Diferencie brevemente, com base em suas origens, um polímero natural (biopolímero) de um polímero sintético, e cite um exemplo prático de cada tipo abordado em aula.</p>
+                    <textarea name="q12" placeholder="Escreva sua resposta detalhadamente aqui..."></textarea>
+                </article>
+            </section>
 
-            <!-- Controles de Navegação -->
-            <div class="flex flex-row justify-between mt-8 gap-3 sm:gap-4">
-                <button type="button" id="btn-prev" onclick="prevQuestion()" class="flex-1 bg-white border-2 border-green-500 text-green-700 hover:bg-green-50 font-bold py-4 px-2 sm:px-4 rounded-xl transition-all duration-200 shadow-sm hidden flex items-center justify-center gap-1 sm:gap-2 text-base sm:text-lg">
-                    <span class="text-xl">&larr;</span> Anterior
+            <!-- Controles de Navegação Iguais (50% / 50%) -->
+            <div class="flex flex-row justify-between gap-3 sm:gap-4 mt-8">
+                <button type="button" id="btn-prev" onclick="prevQuestion()" class="flex-1 bg-white border-2 border-sky-300 text-sky-700 hover:bg-sky-50 font-bold py-4 px-2 rounded-xl transition-all shadow-sm hidden items-center justify-center gap-2 text-base sm:text-lg">
+                    <i class="fas fa-arrow-left"></i> <span>Anterior</span>
                 </button>
                 
-                <button type="button" id="btn-next" onclick="nextQuestion()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-2 sm:px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:-translate-y-1 flex items-center justify-center gap-1 sm:gap-2 text-base sm:text-lg">
-                    Próxima <span class="text-xl">&rarr;</span>
+                <button type="button" id="btn-next" onclick="nextQuestion()" class="flex-1 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold py-4 px-2 rounded-xl shadow-md transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 text-base sm:text-lg">
+                    <span>Próxima</span> <i class="fas fa-arrow-right"></i>
                 </button>
                 
-                <button type="submit" id="submit-btn" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold py-4 px-2 sm:px-4 rounded-xl shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hidden flex items-center justify-center gap-2 text-base sm:text-xl ring-4 ring-emerald-200">
-                    ✨ Enviar Respostas
+                <button type="submit" id="submit-btn" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 px-2 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 hidden items-center justify-center gap-2 text-base sm:text-lg">
+                    <i class="fas fa-paper-plane"></i> <span>Enviar Tudo</span>
                 </button>
             </div>
-            
         </form>
 
-        <!-- TELA 3: CARREGAMENTO / SUCESSO -->
-        <div id="loading-screen" class="hidden bg-white p-8 rounded-xl shadow-lg text-center">
-            <svg class="animate-spin h-10 w-10 text-green-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <h2 class="text-2xl font-semibold text-gray-700">Enviando suas respostas...</h2>
-            <p class="text-gray-500 mt-2">Por favor, não feche a página.</p>
-        </div>
+        <!-- TELA 3: CARREGAMENTO -->
+        <section id="loading-screen" class="hidden glass-card p-10 text-center">
+            <i class="fas fa-flask text-5xl text-emerald-500 animate-spin mb-6"></i>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Processando Respostas...</h2>
+            <p class="text-slate-600 text-lg">A química está acontecendo, por favor aguarde. ✨</p>
+        </section>
 
-        <div id="success-screen" class="hidden bg-white p-8 rounded-xl shadow-lg text-center border-t-8 border-green-500">
-            <h2 class="text-3xl font-bold text-green-600 mb-4">Quiz Concluído! 🎉</h2>
-            <p class="text-lg text-gray-700 mb-2" id="final-name"></p>
-            <p class="text-md text-gray-600 mb-2">Tempo total: <strong id="final-time"></strong></p>
-            <p class="text-md text-gray-600 mb-6">Você acertou <strong id="final-score" class="text-green-600 text-xl"></strong> das 8 questões objetivas.</p>
-            <p class="text-sm text-gray-500 italic">As questões discursivas serão avaliadas pelo professor. Pode fechar esta página.</p>
-        </div>
+        <!-- TELA 4: SUCESSO -->
+        <section id="success-screen" class="hidden glass-card p-10 text-center border-t-8 border-t-emerald-500 relative overflow-hidden">
+            <div class="mb-6">
+                <i class="fas fa-medal text-7xl text-amber-400 drop-shadow-md"></i>
+            </div>
+            
+            <h2 class="font-gamified text-5xl text-emerald-600 mb-4 tracking-wide">Desafio Concluído!</h2>
+            <p class="text-2xl text-slate-700 mb-8" id="final-name"></p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1"><i class="fas fa-stopwatch"></i> Tempo</p>
+                    <p class="font-gamified text-3xl text-emerald-600" id="final-time"></p>
+                </div>
+                <div class="bg-sky-50 border border-sky-200 rounded-xl p-4">
+                    <p class="text-xs font-bold text-sky-700 uppercase tracking-wider mb-1"><i class="fas fa-bullseye"></i> Acertos (Objetivas)</p>
+                    <p class="font-gamified text-3xl text-sky-600"><span id="final-score"></span> / 8</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-slate-500 italic bg-white/50 p-3 rounded-lg border border-slate-100">
+                <i class="fas fa-info-circle mr-1 text-sky-500"></i> As questões discursivas serão avaliadas pelo Prof. Alfredo em breve. Pode fechar essa página!
+            </p>
+        </section>
 
     </div>
 
-    <!-- LÓGICA DO JOGO -->
+    <!-- Mascote Fixo -->
+    <div id="quiz-mascot" class="fixed bottom-6 right-6 z-20" aria-hidden="true">
+        <span id="quiz-mascot-icon">🧪</span>
+    </div>
+
+    <!-- LÓGICA E GAMIFICAÇÃO -->
     <script>
-        // === CONFIGURAÇÃO: URL DO SEU APPS SCRIPT ===
+        // URL DO GOOGLE APPS SCRIPT
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4isCe4fNTeD410xFzN3AQ654FjkHCzKDhmfF7c8-bY0QzY_t10Ya75dTyxggFFuOs/exec';
         
-        // Gabarito das objetivas (Q1 a Q8)
-        const GABARITO = {
-            q1: 'B', q2: 'C', q3: 'C', q4: 'D', 
-            q5: 'C', q6: 'B', q7: 'B', q8: 'Falso'
-        };
+        const GABARITO = { q1: 'B', q2: 'C', q3: 'C', q4: 'D', q5: 'C', q6: 'B', q7: 'B', q8: 'Falso' };
 
-        // Variáveis de controle
         let startTime;
         let studentName = '';
         let currentStep = 0;
         const totalSteps = 12;
+        let timerInterval = null;
+        
+        // --- ÁUDIO (Web Audio API) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!window.AudioContext && !window.webkitAudioContext) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function playTone(freq, duration, type) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.exponentialRampToValueAtTime(0.2, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+        function soundClick() { playTone(800, 0.1, 'sine'); }
+        function soundError() { playTone(200, 0.3, 'triangle'); }
 
+        // --- INTERAÇÕES DE UI ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 2500);
+        }
+
+        // Seleção Visual de Radio
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.radio-label').forEach(label => {
+                label.addEventListener('click', () => {
+                    const input = label.querySelector('input');
+                    document.querySelectorAll(`input[name="${input.name}"]`).forEach(inp => {
+                        inp.closest('.radio-label').classList.remove('selected');
+                    });
+                    label.classList.add('selected');
+                    soundClick();
+                });
+            });
+        });
+
+        // --- TIMER ---
+        function updateTimer() {
+            const diffMs = new Date() - startTime;
+            const mins = String(Math.floor(diffMs / 60000)).padStart(2, '0');
+            const secs = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, '0');
+            document.getElementById('live-timer').textContent = `${mins}:${secs}`;
+        }
+
+        // --- FLUXO DO QUIZ ---
         function startQuiz() {
             const nameInput = document.getElementById('student-name').value.trim();
-            if(nameInput === '') {
-                const errorMsg = document.getElementById('name-error');
-                errorMsg.classList.remove('hidden');
-                // Reset animation
-                errorMsg.style.animation = 'none';
-                setTimeout(() => errorMsg.style.animation = '', 10);
+            const err = document.getElementById('name-error');
+            if (nameInput === '') {
+                err.classList.remove('hidden');
+                document.getElementById('intro-screen').classList.add('shake');
+                setTimeout(() => document.getElementById('intro-screen').classList.remove('shake'), 300);
+                soundError();
                 return;
             }
+            err.classList.add('hidden');
             
             studentName = nameInput;
-            startTime = new Date(); 
+            initAudio();
+            soundClick();
             
-            // Transição suave para o formulário
+            startTime = new Date(); 
+            timerInterval = setInterval(updateTimer, 1000);
+            
             document.getElementById('intro-screen').classList.add('hidden');
             document.getElementById('quiz-form').classList.remove('hidden');
-            
             updateView();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function updateView() {
-            // Esconde todos os passos e remove animações
             for(let i = 0; i < totalSteps; i++) {
-                const stepDiv = document.getElementById(`q-step-${i}`);
-                if(stepDiv) {
-                    stepDiv.classList.add('hidden');
-                    stepDiv.classList.remove('animate-step');
-                }
+                const step = document.getElementById(`q-step-${i}`);
+                step.classList.add('hidden');
+                step.classList.remove('animate-step');
             }
-            
-            // Exibe o passo atual com animação
-            const currentDiv = document.getElementById(`q-step-${currentStep}`);
-            currentDiv.classList.remove('hidden');
-            // Reflow hack para reiniciar animação CSS
-            void currentDiv.offsetWidth; 
-            currentDiv.classList.add('animate-step');
+            const current = document.getElementById(`q-step-${currentStep}`);
+            current.classList.remove('hidden');
+            void current.offsetWidth; 
+            current.classList.add('animate-step');
 
-            // Lógica de UI da Barra de Progresso
-            const percent = Math.round(((currentStep + 1) / totalSteps) * 100);
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-percent').innerText = `${percent}%`;
+            const pct = Math.round(((currentStep + 1) / totalSteps) * 100);
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('progress-percent').innerText = `${pct}%`;
             document.getElementById('progress-text').innerText = `Questão ${currentStep + 1} de ${totalSteps}`;
 
-            // Visibilidade dos botões
+            // Botões Flex (Anterior / Próxima / Enviar)
             const btnPrev = document.getElementById('btn-prev');
             const btnNext = document.getElementById('btn-next');
             const btnSubmit = document.getElementById('submit-btn');
 
-            if(currentStep === 0) {
-                btnPrev.classList.add('hidden');
-                btnNext.classList.remove('hidden');
+            if (currentStep === 0) {
+                btnPrev.classList.replace('flex', 'hidden');
+                btnNext.classList.replace('hidden', 'flex');
             } else {
-                btnPrev.classList.remove('hidden');
+                btnPrev.classList.replace('hidden', 'flex');
             }
 
-            if(currentStep === totalSteps - 1) {
-                btnNext.classList.add('hidden');
-                btnSubmit.classList.remove('hidden');
+            if (currentStep === totalSteps - 1) {
+                btnNext.classList.replace('flex', 'hidden');
+                btnSubmit.classList.replace('hidden', 'flex');
             } else {
-                btnNext.classList.remove('hidden');
-                btnSubmit.classList.add('hidden');
+                btnNext.classList.replace('hidden', 'flex');
+                btnSubmit.classList.replace('flex', 'hidden');
             }
+
+            // Anima Mascote
+            const icons = ['🧪', '🔬', '🌱', '🌍', '💡'];
+            document.getElementById('quiz-mascot-icon').textContent = icons[currentStep % icons.length];
+            const mascot = document.getElementById('quiz-mascot');
+            mascot.classList.remove('mascot-bounce');
+            void mascot.offsetWidth;
+            mascot.classList.add('mascot-bounce');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function validateCurrent() {
@@ -369,126 +684,88 @@
             const card = currentDiv.querySelector('.question-card');
             let isValid = true;
 
-            // Verifica radios
             const radios = currentDiv.querySelectorAll('input[type="radio"]');
-            if(radios.length > 0) {
-                const checked = currentDiv.querySelector('input[type="radio"]:checked');
-                if(!checked) isValid = false;
-            }
+            if (radios.length > 0 && !currentDiv.querySelector('input[type="radio"]:checked')) isValid = false;
 
-            // Verifica textareas
-            const textareas = currentDiv.querySelectorAll('textarea');
-            if(textareas.length > 0) {
-                if(textareas[0].value.trim() === '') isValid = false;
-            }
+            const textas = currentDiv.querySelectorAll('textarea');
+            if (textas.length > 0 && textas[0].value.trim() === '') isValid = false;
 
-            if(!isValid) {
-                // Alerta visual de erro agitando o card
-                card.classList.add('border-red-500', 'border-2', 'ring-4', 'ring-red-100');
-                setTimeout(() => {
-                    card.classList.remove('border-red-500', 'border-2', 'ring-4', 'ring-red-100');
-                }, 1500);
-                
-                // Mostra um toast ou alerta nativo
-                alert("Ops! Por favor, responda essa questão antes de avançar.");
+            if (!isValid) {
+                card.classList.add('border-rose-400', 'shake');
+                soundError();
+                showToast("Por favor, preencha a resposta antes de avançar!");
+                setTimeout(() => card.classList.remove('border-rose-400', 'shake'), 300);
+            } else {
+                soundClick();
             }
-            
             return isValid;
         }
 
         function nextQuestion() {
-            if(!validateCurrent()) return;
-            
-            if(currentStep < totalSteps - 1) {
-                currentStep++;
-                updateView();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (!validateCurrent()) return;
+            if (currentStep < totalSteps - 1) { currentStep++; updateView(); }
         }
 
         function prevQuestion() {
-            if(currentStep > 0) {
-                currentStep--;
-                updateView();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (currentStep > 0) { currentStep--; updateView(); }
         }
 
         function submitQuiz(event) {
             event.preventDefault(); 
-            
-            if(!validateCurrent()) return; // Validação final antes de enviar
+            if (!validateCurrent()) return;
 
+            clearInterval(timerInterval);
             const endTime = new Date(); 
-            const form = event.target;
-            const formData = new FormData(form);
+            const formData = new FormData(event.target);
             
-            // --- Cálculo do tempo ---
             const diffMs = endTime - startTime;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffSecs = Math.floor((diffMs % 60000) / 1000);
-            const tempoTexto = `${diffMins} min e ${diffSecs} seg`;
+            const mins = Math.floor(diffMs / 60000);
+            const secs = Math.floor((diffMs % 60000) / 1000);
+            const tempoTexto = `${mins}m ${secs}s`;
 
-            // --- Cálculo da Nota (Apenas Objetivas) ---
             let acertos = 0;
-            for(let key in GABARITO) {
-                if(formData.get(key) === GABARITO[key]) {
-                    acertos++;
-                }
-            }
+            for(let key in GABARITO) { if(formData.get(key) === GABARITO[key]) acertos++; }
 
-            // --- Prepara os dados para o Google Sheets ---
             const payload = {
-                nome: studentName,
-                tempo_resposta: tempoTexto,
-                acertos_objetivas: `${acertos} / 8`,
-                q1: formData.get('q1'),
-                q2: formData.get('q2'),
-                q3: formData.get('q3'),
-                q4: formData.get('q4'),
-                q5: formData.get('q5'),
-                q6: formData.get('q6'),
-                q7: formData.get('q7'),
-                q8: formData.get('q8'),
-                q9: formData.get('q9'),
-                q10: formData.get('q10'),
-                q11: formData.get('q11'),
-                q12: formData.get('q12')
+                nome: studentName, tempo_resposta: tempoTexto, acertos_objetivas: `${acertos} / 8`,
+                q1: formData.get('q1'), q2: formData.get('q2'), q3: formData.get('q3'), q4: formData.get('q4'),
+                q5: formData.get('q5'), q6: formData.get('q6'), q7: formData.get('q7'), q8: formData.get('q8'),
+                q9: formData.get('q9'), q10: formData.get('q10'), q11: formData.get('q11'), q12: formData.get('q12')
             };
 
-            // Troca telas: Mostra "Carregando"
             document.getElementById('quiz-form').classList.add('hidden');
             document.getElementById('loading-screen').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8',
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
+                document.getElementById('loading-screen').classList.add('hidden');
                 if(data.status === 'sucesso') {
-                    document.getElementById('loading-screen').classList.add('hidden');
-                    const successScreen = document.getElementById('success-screen');
-                    successScreen.classList.remove('hidden');
-                    successScreen.classList.add('animate-step');
-                    
-                    document.getElementById('final-name').innerText = `Parabéns pela dedicação, ${studentName}!`;
+                    document.getElementById('success-screen').classList.remove('hidden');
+                    document.getElementById('final-name').innerText = `${studentName}!`;
                     document.getElementById('final-time').innerText = tempoTexto;
                     document.getElementById('final-score').innerText = acertos;
+                    
+                    // Explosão de confetes usando a biblioteca canvas-confetti!
+                    const duration = 3000;
+                    const end = Date.now() + duration;
+                    (function frame() {
+                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#10b981', '#0ea5e9'] });
+                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f59e0b', '#fb7185'] });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
                 } else {
-                    alert("Houve um erro ao salvar suas respostas. Chame o professor.");
-                    console.error(data.mensagem);
-                    document.getElementById('loading-screen').classList.add('hidden');
+                    showToast("Erro ao salvar! Chame o professor.");
                     document.getElementById('quiz-form').classList.remove('hidden');
                 }
             })
-            .catch(error => {
-                alert("Erro de conexão. Verifique a internet e tente novamente.");
-                console.error("Erro:", error);
+            .catch(err => {
+                showToast("Erro de conexão. Verifique a internet.");
                 document.getElementById('loading-screen').classList.add('hidden');
                 document.getElementById('quiz-form').classList.remove('hidden');
             });
